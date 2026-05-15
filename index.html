@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการสต๊อก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        .tab-active { border-bottom: 4px solid #3b82f6; color: #3b82f6; font-weight: 600; }
+        .tab-inactive { color: #6b7280; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold"><i class="fa-solid fa-utensils mr-2"></i> ระบบจัดการสต๊อกช้อนส้อม</h1>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-4xl mx-auto mt-6 bg-white rounded-t-lg shadow-sm border-b flex">
+        <button onclick="switchTab('maid')" id="tab-maid" class="flex-1 py-3 text-center tab-active transition">
+            <i class="fa-solid fa-broom mr-2"></i> สำหรับแม่บ้าน (บันทึกรายวัน)
+        </button>
+        <button onclick="switchTab('admin')" id="tab-admin" class="flex-1 py-3 text-center tab-inactive transition">
+            <i class="fa-solid fa-user-shield mr-2"></i> สำหรับผู้ดูแล (คลังรวม)
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="max-w-4xl mx-auto bg-white shadow-md rounded-b-lg p-6">
+
+        <!-- ==================== MAID SECTION ==================== -->
+        <section id="maid-section" class="block">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">แจ้งรายการ stock ประจำวัน</h2>
+            
+            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-4 mb-6 text-sm">
+                <i class="fa-solid fa-circle-info mr-2"></i> กรุณากรอก <b>"จำนวนที่หายไป"</b> ในวันนี้ หากไม่หายให้ปล่อยว่างหรือใส่ 0
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">วันที่บันทึก:</label>
+                <input type="date" id="record-date" class="w-full md:w-1/2 p-2 border rounded-md bg-gray-100" readonly>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- ช้อน -->
+                <div class="border rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl mr-4">🥄</div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">ช้อน (ปกติ)</h3>
+                            <p class="text-xs text-gray-500" id="maid-sp-remain">คงเหลือในระบบ: 300</p>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
+                        <input type="number" id="lost-spoon" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <!-- ส้อม -->
+                <div class="border rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl mr-4">🍴</div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">ส้อม</h3>
+                            <p class="text-xs text-gray-500" id="maid-fk-remain">คงเหลือในระบบ: 300</p>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
+                        <input type="number" id="lost-fork" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <!-- ช้อนสั้น -->
+                <div class="border rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl mr-4">🥄</div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">ช้อนสั้น</h3>
+                            <p class="text-xs text-gray-500" id="maid-ssp-remain">คงเหลือในระบบ: 100</p>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
+                        <input type="number" id="lost-sspoon" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <!-- ตะเกียบ -->
+                <div class="border rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl mr-4">🥢</div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">ตะเกียบ (คู่)</h3>
+                            <p class="text-xs text-gray-500" id="maid-ch-remain">คงเหลือในระบบ: 100</p>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
+                        <input type="number" id="lost-chopstick" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="submitDailyCheck()" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-200">
+                <i class="fa-solid fa-floppy-disk mr-2"></i> บันทึกข้อมูลประจำวัน
+            </button>
+        </section>
+
+
+        <!-- ==================== ADMIN SECTION ==================== -->
+        <section id="admin-section" class="hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ภาพรวมสต๊อก (Dashboard ผู้ดูแล)</h2>
+
+            <!-- สถานะสต๊อกที่ใช้งาน (รายสัปดาห์) -->
+            <div class="mb-8">
+                <div class="flex justify-between items-end mb-3">
+                    <h3 class="font-bold text-gray-700"><i class="fa-solid fa-calendar-week mr-2 text-blue-500"></i> สต๊อกที่ถูกใช้งาน (โควต้ารายสัปดาห์)</h3>
+                    <button onclick="replenishWeeklyStock()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm shadow font-medium">
+                        <i class="fa-solid fa-rotate mr-1"></i> เติมของให้เต็มสัปดาห์
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white border rounded-lg p-3 shadow-sm text-center">
+                        <div class="text-sm text-gray-500">ช้อน</div>
+                        <div class="text-2xl font-bold text-blue-600" id="w-spoon">300<span class="text-sm text-gray-400 font-normal">/300</span></div>
+                    </div>
+                    <div class="bg-white border rounded-lg p-3 shadow-sm text-center">
+                        <div class="text-sm text-gray-500">ส้อม</div>
+                        <div class="text-2xl font-bold text-blue-600" id="w-fork">300<span class="text-sm text-gray-400 font-normal">/300</span></div>
+                    </div>
+                    <div class="bg-white border rounded-lg p-3 shadow-sm text-center">
+                        <div class="text-sm text-gray-500">ช้อนสั้น</div>
+                        <div class="text-2xl font-bold text-blue-600" id="w-sspoon">100<span class="text-sm text-gray-400 font-normal">/100</span></div>
+                    </div>
+                    <div class="bg-white border rounded-lg p-3 shadow-sm text-center">
+                        <div class="text-sm text-gray-500">ตะเกียบ</div>
+                        <div class="text-2xl font-bold text-blue-600" id="w-chopstick">100<span class="text-sm text-gray-400 font-normal">/100</span></div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">* เมื่อกด "เติมของ" ระบบจะหักยอดคงเหลือจากคลังใหญ่มาเติมให้เต็ม</p>
+            </div>
+
+            <!-- สถานะคลังรวม (Main Stock) -->
+            <div>
+                <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-boxes-stacked mr-2 text-purple-500"></i> คลังรวม (คลังใหญ่สำหรับสำรอง)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-purple-800">ช้อนสำรอง</div>
+                        <div class="text-2xl font-bold text-purple-600" id="m-spoon">1000</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-purple-800">ส้อมสำรอง</div>
+                        <div class="text-2xl font-bold text-purple-600" id="m-fork">1000</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-purple-800">ช้อนสั้นสำรอง</div>
+                        <div class="text-2xl font-bold text-purple-600" id="m-sspoon">500</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-purple-800">ตะเกียบสำรอง</div>
+                        <div class="text-2xl font-bold text-purple-600" id="m-chopstick">500</div>
+                    </div>
+                </div>
+
+                <!-- ฟอร์มรับของเข้าคลัง -->
+                <div class="bg-gray-50 p-4 rounded-lg border mt-6">
+                    <h4 class="font-bold text-sm text-gray-700 mb-3">รับของใหม่เข้าคลังใหญ่ (เมื่อสั่งซื้อมาเพิ่ม)</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
+                        <div>
+                            <label class="text-xs text-gray-600">ช้อน (+)</label>
+                            <input type="number" id="add-m-spoon" value="0" min="0" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600">ส้อม (+)</label>
+                            <input type="number" id="add-m-fork" value="0" min="0" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600">ช้อนสั้น (+)</label>
+                            <input type="number" id="add-m-sspoon" value="0" min="0" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600">ตะเกียบ (+)</label>
+                            <input type="number" id="add-m-chopstick" value="0" min="0" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <button onclick="addMainStock()" class="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded shadow font-medium">
+                                <i class="fa-solid fa-plus mr-1"></i> เพิ่มสต๊อก
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log สถานะ -->
+             <div class="mt-6">
+                <h3 class="font-bold text-gray-700 mb-2">สถานะการทำรายการ</h3>
+                <div id="system-log" class="bg-black text-green-400 font-mono text-xs p-3 rounded h-32 overflow-y-auto">
+                    > ระบบพร้อมใช้งาน...
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- UI Overlay for Loading -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-4"></i>
+            <p class="font-medium text-gray-800">กำลังซิงค์ข้อมูลกับระบบ...</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. โครงสร้างข้อมูลตั้งต้น (โควต้า) ---
+        const QUOTA = { spoon: 300, fork: 300, sspoon: 100, chopstick: 100 };
+        
+        // สถานะข้อมูลจำลอง (ในระบบจริงจะดึงมาจาก Google Sheet)
+        let db = {
+            weekly: { spoon: 300, fork: 300, sspoon: 100, chopstick: 100 },
+            main: { spoon: 1000, fork: 1000, sspoon: 500, chopstick: 500 }
+        };
+
+        // --- 2. ฟังก์ชั่นเริ่มต้นระบบ ---
+        window.onload = function() {
+            // เซ็ตวันที่ปัจจุบัน
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('record-date').value = today;
+
+            // โหลดข้อมูลจาก LocalStorage (จำลองแทน Google Sheet)
+            const savedData = localStorage.getItem('canteenStockDB');
+            if(savedData) {
+                db = JSON.parse(savedData);
+            }
+            updateUI();
+        };
+
+        // --- 3. อัพเดทหน้าจอ UI ---
+        function updateUI() {
+            // Maid Section
+            document.getElementById('maid-sp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.spoon}`;
+            document.getElementById('maid-fk-remain').innerText = `คงเหลือในระบบ: ${db.weekly.fork}`;
+            document.getElementById('maid-ssp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.sspoon}`;
+            document.getElementById('maid-ch-remain').innerText = `คงเหลือในระบบ: ${db.weekly.chopstick}`;
+
+            // Admin Section - Weekly
+            document.getElementById('w-spoon').innerHTML = `${db.weekly.spoon}<span class="text-sm text-gray-400 font-normal">/${QUOTA.spoon}</span>`;
+            document.getElementById('w-fork').innerHTML = `${db.weekly.fork}<span class="text-sm text-gray-400 font-normal">/${QUOTA.fork}</span>`;
+            document.getElementById('w-sspoon').innerHTML = `${db.weekly.sspoon}<span class="text-sm text-gray-400 font-normal">/${QUOTA.sspoon}</span>`;
+            document.getElementById('w-chopstick').innerHTML = `${db.weekly.chopstick}<span class="text-sm text-gray-400 font-normal">/${QUOTA.chopstick}</span>`;
+
+            // Admin Section - Main
+            document.getElementById('m-spoon').innerText = db.main.spoon;
+            document.getElementById('m-fork').innerText = db.main.fork;
+            document.getElementById('m-sspoon').innerText = db.main.sspoon;
+            document.getElementById('m-chopstick').innerText = db.main.chopstick;
+
+            // ตรวจสอบสต๊อกใกล้หมด (ต่ำกว่า 20%)
+            checkWarning(db.main.spoon, 1000, 'm-spoon');
+            checkWarning(db.main.fork, 1000, 'm-fork');
+        }
+
+        function checkWarning(current, max, elementId) {
+            const el = document.getElementById(elementId);
+            if (current <= (max * 0.2)) {
+                el.classList.remove('text-purple-600');
+                el.classList.add('text-red-600', 'animate-pulse');
+            } else {
+                el.classList.add('text-purple-600');
+                el.classList.remove('text-red-600', 'animate-pulse');
+            }
+        }
+
+        // --- 4. ฟังก์ชั่นสลับแท็บ ---
+        function switchTab(tab) {
+            const mSec = document.getElementById('maid-section');
+            const aSec = document.getElementById('admin-section');
+            const mTab = document.getElementById('tab-maid');
+            const aTab = document.getElementById('tab-admin');
+
+            if (tab === 'maid') {
+                mSec.classList.remove('hidden'); aSec.classList.add('hidden');
+                mTab.classList.replace('tab-inactive', 'tab-active');
+                aTab.classList.replace('tab-active', 'tab-inactive');
+            } else {
+                aSec.classList.remove('hidden'); mSec.classList.add('hidden');
+                aTab.classList.replace('tab-inactive', 'tab-active');
+                mTab.classList.replace('tab-active', 'tab-inactive');
+            }
+        }
+
+        // --- 5. แม่บ้านบันทึกของหาย ---
+        function submitDailyCheck() {
+            const l_spoon = parseInt(document.getElementById('lost-spoon').value) || 0;
+            const l_fork = parseInt(document.getElementById('lost-fork').value) || 0;
+            const l_sspoon = parseInt(document.getElementById('lost-sspoon').value) || 0;
+            const l_chop = parseInt(document.getElementById('lost-chopstick').value) || 0;
+
+            if (l_spoon === 0 && l_fork === 0 && l_sspoon === 0 && l_chop === 0) {
+                alert("กรุณาระบุจำนวนที่หายอย่างน้อย 1 รายการ");
+                return;
+            }
+
+            showLoading();
+
+            // จำลองการบันทึก (Delay 1 วิ)
+            setTimeout(() => {
+                db.weekly.spoon = Math.max(0, db.weekly.spoon - l_spoon);
+                db.weekly.fork = Math.max(0, db.weekly.fork - l_fork);
+                db.weekly.sspoon = Math.max(0, db.weekly.sspoon - l_sspoon);
+                db.weekly.chopstick = Math.max(0, db.weekly.chopstick - l_chop);
+
+                saveData("บันทึกของหายประจำวันเรียบร้อย");
+                
+                // Reset form
+                document.getElementById('lost-spoon').value = 0;
+                document.getElementById('lost-fork').value = 0;
+                document.getElementById('lost-sspoon').value = 0;
+                document.getElementById('lost-chopstick').value = 0;
+                
+                hideLoading();
+                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+            }, 1000);
+        }
+
+        // --- 6. ผู้ดูแลเติมของประจำสัปดาห์ ---
+        function replenishWeeklyStock() {
+            if(!confirm("ยืนยันการเติมของ? ระบบจะนำของจาก 'คลังรวม' มาเติมให้เต็มโควต้ารายสัปดาห์")) return;
+
+            showLoading();
+
+            setTimeout(() => {
+                // คำนวณส่วนต่างที่ต้องเติม
+                const diff_sp = QUOTA.spoon - db.weekly.spoon;
+                const diff_fk = QUOTA.fork - db.weekly.fork;
+                const diff_ssp = QUOTA.sspoon - db.weekly.sspoon;
+                const diff_ch = QUOTA.chopstick - db.weekly.chopstick;
+
+                // ตรวจสอบว่าคลังใหญ่มีพอไหม (ถ้าไม่พอ เอาเท่าที่มี)
+                const take_sp = Math.min(diff_sp, db.main.spoon);
+                const take_fk = Math.min(diff_fk, db.main.fork);
+                const take_ssp = Math.min(diff_ssp, db.main.sspoon);
+                const take_ch = Math.min(diff_ch, db.main.chopstick);
+
+                // อัพเดทสต๊อกรายสัปดาห์
+                db.weekly.spoon += take_sp;
+                db.weekly.fork += take_fk;
+                db.weekly.sspoon += take_ssp;
+                db.weekly.chopstick += take_ch;
+
+                // หักออกจากคลังใหญ่
+                db.main.spoon -= take_sp;
+                db.main.fork -= take_fk;
+                db.main.sspoon -= take_ssp;
+                db.main.chopstick -= take_ch;
+
+                saveData(`เติมของประจำสัปดาห์ (ช้อน+${take_sp}, ส้อม+${take_fk}, ช้อนสั้น+${take_ssp}, ตะเกียบ+${take_ch})`);
+                hideLoading();
+
+                if (take_sp < diff_sp || take_fk < diff_fk) {
+                    alert("แจ้งเตือน: คลังรวมมีของไม่พอเติมให้เต็มโควต้า กรุณาสั่งซื้อเพิ่ม!");
+                } else {
+                    alert("เติมของประจำสัปดาห์เรียบร้อยแล้ว!");
+                }
+            }, 1000);
+        }
+
+        // --- 7. ผู้ดูแลเพิ่มของเข้าคลังใหญ่ ---
+        function addMainStock() {
+            const add_sp = parseInt(document.getElementById('add-m-spoon').value) || 0;
+            const add_fk = parseInt(document.getElementById('add-m-fork').value) || 0;
+            const add_ssp = parseInt(document.getElementById('add-m-sspoon').value) || 0;
+            const add_ch = parseInt(document.getElementById('add-m-chopstick').value) || 0;
+
+            if (add_sp===0 && add_fk===0 && add_ssp===0 && add_ch===0) return;
+
+            showLoading();
+
+            setTimeout(() => {
+                db.main.spoon += add_sp;
+                db.main.fork += add_fk;
+                db.main.sspoon += add_ssp;
+                db.main.chopstick += add_ch;
+
+                // Reset inputs
+                document.getElementById('add-m-spoon').value = 0;
+                document.getElementById('add-m-fork').value = 0;
+                document.getElementById('add-m-sspoon').value = 0;
+                document.getElementById('add-m-chopstick').value = 0;
+
+                saveData(`รับของเข้าคลัง (ช้อน+${add_sp}, ส้อม+${add_fk})`);
+                hideLoading();
+                alert("เพิ่มของเข้าคลังรวมเรียบร้อยแล้ว");
+            }, 1000);
+        }
+
+        // --- 8. บันทึกข้อมูลและแจ้งเตือน ---
+        function saveData(actionMsg) {
+            // *ในระบบจริง ตรงนี้คือการใช้ fetch() ยิง API ไปหา Google Apps Script*
+            // ตัวอย่าง: fetch('YOUR_WEB_APP_URL', { method: 'POST', body: JSON.stringify(db) })
+            
+            localStorage.setItem('canteenStockDB', JSON.stringify(db));
+            updateUI();
+            logAction(actionMsg);
+        }
+
+        function logAction(msg) {
+            const logBox = document.getElementById('system-log');
+            const time = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<br>> [${time}] ${msg}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function showLoading() { document.getElementById('loading-overlay').classList.remove('hidden'); }
+        function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+
+    </script>
+</body>
+</html>
