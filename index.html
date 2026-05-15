@@ -420,7 +420,15 @@
                 db.weekly.sspoon = Math.max(0, db.weekly.sspoon - l_sspoon);
                 db.weekly.chopstick = Math.max(0, db.weekly.chopstick - l_chop);
 
-                saveData("บันทึกของหายประจำวันเรียบร้อย");
+                // แนบข้อมูลของที่หายไปให้ saveData เพื่อส่งเข้า Sheet
+                const logData = {
+                    lostSpoon: l_spoon,
+                    lostFork: l_fork,
+                    lostSspoon: l_sspoon,
+                    lostChopstick: l_chop
+                };
+
+                saveData("บันทึกของหายประจำวันเรียบร้อย", logData);
                 
                 // Reset form
                 document.getElementById('lost-spoon').value = 0;
@@ -548,15 +556,22 @@
         }
 
         // --- 8. บันทึกข้อมูลและแจ้งเตือน ---
-        function saveData(actionMsg) {
+        function saveData(actionMsg, logData = {}) {
             const webAppUrl = 'https://script.google.com/macros/s/AKfycbyVHR4ziWHUqEAIytP6ylS4ldV_UzrR5TRRgcazOQ3svxuaA1Qul7CBY09WNzRgW-sGvg/exec';
+            
+            // จัดเตรียมข้อมูล Payload ก่อนส่งให้ Apps Script
+            const payload = {
+                action: actionMsg,
+                logData: logData,
+                db: db
+            };
             
             // ส่งข้อมูลไปบันทึกลง Google Sheet
             fetch(webAppUrl, { 
                 method: 'POST', 
                 mode: 'no-cors', // ป้องกันปัญหา CORS ตอนยิงข้ามโดเมน
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(db) 
+                body: JSON.stringify(payload) 
             }).catch(err => console.error("ไม่สามารถเชื่อมต่อ Google Sheet ได้:", err));
             
             localStorage.setItem('canteenStockDB', JSON.stringify(db));
