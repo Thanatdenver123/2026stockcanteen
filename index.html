@@ -43,9 +43,15 @@
                 <i class="fa-solid fa-circle-info mr-2"></i> กรุณากรอก <b>"จำนวนที่หายไป"</b> ในวันนี้ หากไม่หายให้ปล่อยว่างหรือใส่ 0
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">วันที่บันทึก:</label>
-                <input type="date" id="record-date" class="w-full md:w-1/2 p-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">วันที่บันทึก:</label>
+                    <input type="date" id="record-date" class="w-full p-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">ชื่อผู้ลงข้อมูล:</label>
+                    <input type="text" id="reporter-name" placeholder="ระบุชื่อผู้ลงข้อมูล..." class="w-full p-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,7 +60,7 @@
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl mr-4">🥄</div>
                         <div>
-                            <h3 class="font-bold text-gray-800">ช้อน (ปกติ)</h3>
+                            <h3 class="font-bold text-gray-800">ช้อน (ยาว)</h3>
                             <p class="text-xs text-gray-500" id="maid-sp-remain">คงเหลือในระบบ: 300</p>
                         </div>
                     </div>
@@ -145,9 +151,40 @@
                 <div class="mb-8">
                     <div class="flex justify-between items-end mb-3">
                         <h3 class="font-bold text-gray-700"><i class="fa-solid fa-calendar-week mr-2 text-blue-500"></i> สต๊อกที่ถูกใช้งาน (โควต้ารายสัปดาห์)</h3>
-                        <button onclick="replenishWeeklyStock()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm shadow font-medium">
-                            <i class="fa-solid fa-rotate mr-1"></i> เติมของให้เต็มสัปดาห์
-                        </button>
+                        <div class="flex space-x-2">
+                            <button onclick="toggleEditWeeklyStock()" class="text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-2 py-1.5 rounded"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button>
+                            <button onclick="replenishWeeklyStock()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm shadow font-medium">
+                                <i class="fa-solid fa-rotate mr-1"></i> เติมของให้เต็มสัปดาห์
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ฟอร์มแก้ไขสต๊อกรายสัปดาห์ (ซ่อนไว้) -->
+                    <div id="edit-weekly-stock-form" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4 shadow-inner">
+                        <h4 class="font-bold text-sm text-gray-800 mb-3"><i class="fa-solid fa-pen-to-square mr-1 text-blue-600"></i> แก้ไขจำนวนสต๊อกรายสัปดาห์</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                            <div>
+                                <label class="text-xs text-gray-700 font-bold">ช้อนยาว</label>
+                                <input type="number" id="edit-w-spoon" min="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-700 font-bold">ส้อม</label>
+                                <input type="number" id="edit-w-fork" min="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-700 font-bold">ช้อนสั้น</label>
+                                <input type="number" id="edit-w-sspoon" min="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-700 font-bold">ตะเกียบ</label>
+                                <input type="number" id="edit-w-chopstick" min="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <button onclick="saveWeeklyStock()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded shadow font-bold">
+                                    <i class="fa-solid fa-save mr-1"></i> บันทึกค่า
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -401,6 +438,7 @@
 
         // --- 5. แม่บ้านบันทึกของหาย ---
         function submitDailyCheck() {
+            const reporterName = document.getElementById('reporter-name').value;
             const l_spoon = parseInt(document.getElementById('lost-spoon').value) || 0;
             const l_fork = parseInt(document.getElementById('lost-fork').value) || 0;
             const l_sspoon = parseInt(document.getElementById('lost-sspoon').value) || 0;
@@ -422,6 +460,7 @@
 
                 // แนบข้อมูลของที่หายไปให้ saveData เพื่อส่งเข้า Sheet
                 const logData = {
+                    reporterName: reporterName,
                     lostSpoon: l_spoon,
                     lostFork: l_fork,
                     lostSspoon: l_sspoon,
@@ -431,6 +470,7 @@
                 saveData("บันทึกของหายประจำวันเรียบร้อย", logData);
                 
                 // Reset form
+                document.getElementById('reporter-name').value = '';
                 document.getElementById('lost-spoon').value = 0;
                 document.getElementById('lost-fork').value = 0;
                 document.getElementById('lost-sspoon').value = 0;
@@ -481,6 +521,38 @@
                     alert("เติมของประจำสัปดาห์เรียบร้อยแล้ว!");
                 }
             }, 1000);
+        }
+
+        // --- แก้ไขจำนวนสต๊อกรายสัปดาห์ ---
+        function toggleEditWeeklyStock() {
+            const form = document.getElementById('edit-weekly-stock-form');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) {
+                document.getElementById('edit-w-spoon').value = db.weekly.spoon;
+                document.getElementById('edit-w-fork').value = db.weekly.fork;
+                document.getElementById('edit-w-sspoon').value = db.weekly.sspoon;
+                document.getElementById('edit-w-chopstick').value = db.weekly.chopstick;
+            }
+        }
+
+        function saveWeeklyStock() {
+            const sp = parseInt(document.getElementById('edit-w-spoon').value) || 0;
+            const fk = parseInt(document.getElementById('edit-w-fork').value) || 0;
+            const ssp = parseInt(document.getElementById('edit-w-sspoon').value) || 0;
+            const ch = parseInt(document.getElementById('edit-w-chopstick').value) || 0;
+
+            showLoading();
+            setTimeout(() => {
+                db.weekly.spoon = sp;
+                db.weekly.fork = fk;
+                db.weekly.sspoon = ssp;
+                db.weekly.chopstick = ch;
+
+                saveData(`ปรับยอดสต๊อกรายสัปดาห์ (ช้อนยาว:${sp}, ส้อม:${fk}, ช้อนสั้น:${ssp}, ตะเกียบ:${ch})`);
+                toggleEditWeeklyStock();
+                hideLoading();
+                alert("บันทึกสต๊อกรายสัปดาห์เรียบร้อยแล้ว");
+            }, 500);
         }
 
         // --- 7. ผู้ดูแลจัดการคลังใหญ่ ---
