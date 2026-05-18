@@ -329,7 +329,7 @@
     </div>
 
     <script>
-        // URL ของ Google Apps Script ของคุณ
+        // --- !!! สำคัญมาก: ถ้าคุณขึ้น Deployment ใหม่ ต้องเปลี่ยน URL ตรงนี้ใหม่ด้วย !!! ---
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbyVHR4ziWHUqEAIytP6ylS4ldV_UzrR5TRRgcazOQ3svxuaA1Qul7CBY09WNzRgW-sGvg/exec';
 
         // --- 1. โครงสร้างข้อมูลตั้งต้น (โควต้า) ---
@@ -374,16 +374,38 @@
             updateUI();
             hideLoading();
 
-            // จัดการการเลือกรูปภาพ
+            // จัดการการเลือกรูปภาพ พร้อมระบบบีบอัดภาพ (Resize & Compress) 
+            // ช่วยแก้ปัญหาไฟล์ภาพใหญ่เกินไปจน Google รับไม่ไหว
             document.getElementById('incident-photo').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function(event) {
-                        document.getElementById('photo-preview').classList.remove('hidden');
-                        document.getElementById('preview-img').src = event.target.result;
-                        currentPhotoBase64 = event.target.result.split(',')[1]; // เอาเฉพาะส่วน Base64 Data
-                        currentPhotoName = file.name;
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800; // ลดขนาดรูปภาพให้กว้างสุด 800px เพื่อลดการกินเน็ต
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > MAX_WIDTH) {
+                                height = Math.round((height * MAX_WIDTH) / width);
+                                width = MAX_WIDTH;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // บีบอัดคุณภาพเหลือ 70%
+                            
+                            document.getElementById('photo-preview').classList.remove('hidden');
+                            document.getElementById('preview-img').src = compressedDataUrl;
+                            currentPhotoBase64 = compressedDataUrl.split(',')[1];
+                            currentPhotoName = file.name;
+                        }
+                        img.src = event.target.result;
                     }
                     reader.readAsDataURL(file);
                 } else {
@@ -747,18 +769,17 @@
 
         // --- 8. บันทึกข้อมูลและแจ้งเตือน ---
         function saveData(actionMsg, logData = {}) {
-            // จัดเตรียมข้อมูล Payload ก่อนส่งให้ Apps Script
             const payload = {
                 action: actionMsg,
                 logData: logData,
                 db: db
             };
             
-            // ส่งข้อมูลไปบันทึกลง Google Sheet แบบ POST (ไม่สน CORS)
+            // ส่งข้อมูลไปบันทึกลง Google Sheet แบบ POST (เปลี่ยน Content-Type เพื่อให้ส่งง่ายขึ้น)
             fetch(webAppUrl, { 
                 method: 'POST', 
                 mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload) 
             }).catch(err => console.error("ไม่สามารถเชื่อมต่อ Google Sheet ได้:", err));
             
