@@ -40,7 +40,7 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">แจ้งรายการของหายประจำวัน</h2>
             
             <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-4 mb-6 text-sm">
-                <i class="fa-solid fa-circle-info mr-2"></i> กรุณากรอก <b>"จำนวนที่หายไป"</b> ในวันนี้ หากไม่หายให้ปล่อยว่างหรือใส่ 0
+                <i class="fa-solid fa-circle-info mr-2"></i> กรุณากรอก <b>"จำนวนที่นับได้ (เหลือจริง)"</b> ในวันนี้ ระบบจะช่วยคำนวณยอดที่หายไปให้ทันที
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -64,9 +64,10 @@
                             <p class="text-xs text-gray-500" id="maid-sp-remain">คงเหลือในระบบ: 300</p>
                         </div>
                     </div>
-                    <div class="w-24">
-                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
-                        <input type="number" id="lost-spoon" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="w-28">
+                        <label class="text-xs text-blue-600 font-bold block mb-1">นับได้ (เหลือ)</label>
+                        <input type="number" id="remain-spoon" min="0" oninput="calculateLost('spoon')" class="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                        <div id="lost-calc-spoon" class="text-xs text-gray-400 font-medium mt-1 text-right">หาย: 0</div>
                     </div>
                 </div>
 
@@ -79,9 +80,10 @@
                             <p class="text-xs text-gray-500" id="maid-fk-remain">คงเหลือในระบบ: 300</p>
                         </div>
                     </div>
-                    <div class="w-24">
-                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
-                        <input type="number" id="lost-fork" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="w-28">
+                        <label class="text-xs text-blue-600 font-bold block mb-1">นับได้ (เหลือ)</label>
+                        <input type="number" id="remain-fork" min="0" oninput="calculateLost('fork')" class="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                        <div id="lost-calc-fork" class="text-xs text-gray-400 font-medium mt-1 text-right">หาย: 0</div>
                     </div>
                 </div>
 
@@ -94,9 +96,10 @@
                             <p class="text-xs text-gray-500" id="maid-ssp-remain">คงเหลือในระบบ: 100</p>
                         </div>
                     </div>
-                    <div class="w-24">
-                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
-                        <input type="number" id="lost-sspoon" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="w-28">
+                        <label class="text-xs text-blue-600 font-bold block mb-1">นับได้ (เหลือ)</label>
+                        <input type="number" id="remain-sspoon" min="0" oninput="calculateLost('sspoon')" class="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                        <div id="lost-calc-sspoon" class="text-xs text-gray-400 font-medium mt-1 text-right">หาย: 0</div>
                     </div>
                 </div>
 
@@ -109,9 +112,10 @@
                             <p class="text-xs text-gray-500" id="maid-ch-remain">คงเหลือในระบบ: 100</p>
                         </div>
                     </div>
-                    <div class="w-24">
-                        <label class="text-xs text-red-500 font-bold block mb-1">จำนวนที่หาย</label>
-                        <input type="number" id="lost-chopstick" min="0" value="0" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="w-28">
+                        <label class="text-xs text-blue-600 font-bold block mb-1">นับได้ (เหลือ)</label>
+                        <input type="number" id="remain-chopstick" min="0" oninput="calculateLost('chopstick')" class="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                        <div id="lost-calc-chopstick" class="text-xs text-gray-400 font-medium mt-1 text-right">หาย: 0</div>
                     </div>
                 </div>
             </div>
@@ -320,17 +324,20 @@
     <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
             <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-4"></i>
-            <p class="font-medium text-gray-800">กำลังซิงค์ข้อมูลกับระบบ...</p>
+            <p id="loading-text" class="font-medium text-gray-800">กำลังซิงค์ข้อมูลกับระบบ...</p>
         </div>
     </div>
 
     <script>
+        // URL ของ Google Apps Script ของคุณ
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbyVHR4ziWHUqEAIytP6ylS4ldV_UzrR5TRRgcazOQ3svxuaA1Qul7CBY09WNzRgW-sGvg/exec';
+
         // --- 1. โครงสร้างข้อมูลตั้งต้น (โควต้า) ---
         const QUOTA = { spoon: 300, fork: 300, sspoon: 100, chopstick: 100 };
         
         let isAdminLoggedIn = false;
 
-        // สถานะข้อมูลจำลอง (ในระบบจริงจะดึงมาจาก Google Sheet)
+        // สถานะข้อมูล (เริ่มต้น)
         let db = {
             weekly: { spoon: 300, fork: 300, sspoon: 100, chopstick: 100 },
             main: { spoon: 1000, fork: 1000, sspoon: 500, chopstick: 500 },
@@ -342,21 +349,30 @@
         let currentPhotoName = null;
 
         // --- 2. ฟังก์ชั่นเริ่มต้นระบบ ---
-        window.onload = function() {
+        window.onload = async function() {
             // เซ็ตวันที่ปัจจุบัน
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('record-date').value = today;
 
-            // โหลดข้อมูลจาก LocalStorage (จำลองแทน Google Sheet)
-            const savedData = localStorage.getItem('canteenStockDB');
-            if(savedData) {
-                db = JSON.parse(savedData);
-                // รองรับข้อมูลเก่าที่ยังไม่มี maxMain
-                if(!db.maxMain) {
-                    db.maxMain = { ...db.main };
+            // พยายามดึงข้อมูลอัปเดตล่าสุดจาก Google Apps Script (เพื่อแก้ปัญหาข้อมูลมือถือไม่ตรงคอมฯ)
+            showLoading("กำลังซิงค์ข้อมูลล่าสุดจากเซิร์ฟเวอร์...");
+            try {
+                const response = await fetch(webAppUrl);
+                const cloudData = await response.json();
+                
+                if (cloudData && cloudData.weekly) {
+                    db = cloudData;
+                    localStorage.setItem('canteenStockDB', JSON.stringify(db)); // แคชไว้
+                } else {
+                    loadLocalDataFallback();
                 }
+            } catch (err) {
+                console.warn("ไม่สามารถดึงข้อมูลจาก Cloud ได้ (อาจออฟไลน์), กำลังใช้ข้อมูล Local");
+                loadLocalDataFallback();
             }
+
             updateUI();
+            hideLoading();
 
             // จัดการการเลือกรูปภาพ
             document.getElementById('incident-photo').addEventListener('change', function(e) {
@@ -378,13 +394,39 @@
             });
         };
 
+        function loadLocalDataFallback() {
+            const savedData = localStorage.getItem('canteenStockDB');
+            if(savedData) {
+                db = JSON.parse(savedData);
+                if(!db.maxMain) {
+                    db.maxMain = { ...db.main };
+                }
+            }
+        }
+
         // --- 3. อัพเดทหน้าจอ UI ---
         function updateUI() {
             // Maid Section
-            document.getElementById('maid-sp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.spoon}`;
-            document.getElementById('maid-fk-remain').innerText = `คงเหลือในระบบ: ${db.weekly.fork}`;
-            document.getElementById('maid-ssp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.sspoon}`;
-            document.getElementById('maid-ch-remain').innerText = `คงเหลือในระบบ: ${db.weekly.chopstick}`;
+            document.getElementById('maid-sp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.spoon}/${QUOTA.spoon}`;
+            document.getElementById('maid-fk-remain').innerText = `คงเหลือในระบบ: ${db.weekly.fork}/${QUOTA.fork}`;
+            document.getElementById('maid-ssp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.sspoon}/${QUOTA.sspoon}`;
+            document.getElementById('maid-ch-remain').innerText = `คงเหลือในระบบ: ${db.weekly.chopstick}/${QUOTA.chopstick}`;
+
+            // Reset placeholders / fields
+            document.getElementById('remain-spoon').placeholder = db.weekly.spoon;
+            document.getElementById('remain-fork').placeholder = db.weekly.fork;
+            document.getElementById('remain-sspoon').placeholder = db.weekly.sspoon;
+            document.getElementById('remain-chopstick').placeholder = db.weekly.chopstick;
+            
+            document.getElementById('remain-spoon').value = '';
+            document.getElementById('remain-fork').value = '';
+            document.getElementById('remain-sspoon').value = '';
+            document.getElementById('remain-chopstick').value = '';
+
+            calculateLost('spoon');
+            calculateLost('fork');
+            calculateLost('sspoon');
+            calculateLost('chopstick');
 
             // Admin Section - Weekly
             document.getElementById('w-spoon').innerHTML = `${db.weekly.spoon}<span class="text-sm text-gray-400 font-normal">/${QUOTA.spoon}</span>`;
@@ -418,6 +460,32 @@
                 if(warn) warn.classList.add('hidden');
             }
         }
+
+        // --- ระบบคำนวณของหายอัตโนมัติ (Dynamic Calc) ---
+        function calculateLost(itemKey) {
+            const inputEl = document.getElementById(`remain-${itemKey}`);
+            const calcEl = document.getElementById(`lost-calc-${itemKey}`);
+            const currentStock = db.weekly[itemKey];
+            
+            if (inputEl.value === '') {
+                calcEl.innerText = `หาย: 0`;
+                calcEl.className = "text-xs text-gray-400 font-medium mt-1 text-right";
+                return;
+            }
+
+            const countedVal = parseInt(inputEl.value);
+            let lost = currentStock - countedVal;
+            
+            if (lost < 0) lost = 0; // ป้องกันติดลบถ้ากรอกเกิน
+
+            calcEl.innerText = `หาย: ${lost}`;
+            if (lost > 0) {
+                calcEl.className = "text-xs text-red-500 font-bold mt-1 text-right";
+            } else {
+                calcEl.className = "text-xs text-gray-400 font-medium mt-1 text-right";
+            }
+        }
+
 
         // --- 4. ฟังก์ชั่นสลับแท็บ และ Login ---
         function switchTab(tab) {
@@ -471,24 +539,37 @@
         // --- 5. แม่บ้านบันทึกของหาย ---
         function submitDailyCheck() {
             const reporterName = document.getElementById('reporter-name').value;
-            const l_spoon = parseInt(document.getElementById('lost-spoon').value) || 0;
-            const l_fork = parseInt(document.getElementById('lost-fork').value) || 0;
-            const l_sspoon = parseInt(document.getElementById('lost-sspoon').value) || 0;
-            const l_chop = parseInt(document.getElementById('lost-chopstick').value) || 0;
+            
+            // ดึงค่าจำนวนที่นับได้ (ถ้าว่างเปล่า = ถือว่าไม่หาย ยึดตามสต๊อกปัจจุบัน)
+            const remainStrSp = document.getElementById('remain-spoon').value;
+            const remainStrFk = document.getElementById('remain-fork').value;
+            const remainStrSsp = document.getElementById('remain-sspoon').value;
+            const remainStrCh = document.getElementById('remain-chopstick').value;
+
+            const r_spoon = remainStrSp === '' ? db.weekly.spoon : parseInt(remainStrSp);
+            const r_fork = remainStrFk === '' ? db.weekly.fork : parseInt(remainStrFk);
+            const r_sspoon = remainStrSsp === '' ? db.weekly.sspoon : parseInt(remainStrSsp);
+            const r_chop = remainStrCh === '' ? db.weekly.chopstick : parseInt(remainStrCh);
+
+            // คำนวณของที่หายจริง
+            const l_spoon = Math.max(0, db.weekly.spoon - r_spoon);
+            const l_fork = Math.max(0, db.weekly.fork - r_fork);
+            const l_sspoon = Math.max(0, db.weekly.sspoon - r_sspoon);
+            const l_chop = Math.max(0, db.weekly.chopstick - r_chop);
 
             if (l_spoon === 0 && l_fork === 0 && l_sspoon === 0 && l_chop === 0) {
-                alert("กรุณาระบุจำนวนที่หายอย่างน้อย 1 รายการ");
+                alert("ระบบตรวจพบว่าจำนวนที่ระบุเท่ากับสต๊อกปัจจุบัน (ไม่มีของหาย)");
                 return;
             }
 
-            showLoading();
+            showLoading("กำลังบันทึกข้อมูล...");
 
-            // จำลองการบันทึก (Delay 1 วิ)
+            // จำลองการบันทึก
             setTimeout(() => {
-                db.weekly.spoon = Math.max(0, db.weekly.spoon - l_spoon);
-                db.weekly.fork = Math.max(0, db.weekly.fork - l_fork);
-                db.weekly.sspoon = Math.max(0, db.weekly.sspoon - l_sspoon);
-                db.weekly.chopstick = Math.max(0, db.weekly.chopstick - l_chop);
+                db.weekly.spoon = r_spoon;
+                db.weekly.fork = r_fork;
+                db.weekly.sspoon = r_sspoon;
+                db.weekly.chopstick = r_chop;
 
                 // แนบข้อมูลของที่หายไปให้ saveData เพื่อส่งเข้า Sheet
                 const logData = {
@@ -505,11 +586,6 @@
                 
                 // Reset form
                 document.getElementById('reporter-name').value = '';
-                document.getElementById('lost-spoon').value = 0;
-                document.getElementById('lost-fork').value = 0;
-                document.getElementById('lost-sspoon').value = 0;
-                document.getElementById('lost-sspoon').value = 0;
-                document.getElementById('lost-chopstick').value = 0;
                 
                 // รีเซ็ตรูปภาพ
                 document.getElementById('incident-photo').value = '';
@@ -519,7 +595,7 @@
                 currentPhotoName = null;
                 
                 hideLoading();
-                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+                alert(`บันทึกข้อมูลเรียบร้อยแล้ว!\n(ระบบหัก ช้อนยาว:${l_spoon}, ส้อม:${l_fork}, ช้อนสั้น:${l_sspoon}, ตะเกียบ:${l_chop})`);
             }, 1000);
         }
 
@@ -671,8 +747,6 @@
 
         // --- 8. บันทึกข้อมูลและแจ้งเตือน ---
         function saveData(actionMsg, logData = {}) {
-            const webAppUrl = 'https://script.google.com/macros/s/AKfycbyVHR4ziWHUqEAIytP6ylS4ldV_UzrR5TRRgcazOQ3svxuaA1Qul7CBY09WNzRgW-sGvg/exec';
-            
             // จัดเตรียมข้อมูล Payload ก่อนส่งให้ Apps Script
             const payload = {
                 action: actionMsg,
@@ -680,10 +754,10 @@
                 db: db
             };
             
-            // ส่งข้อมูลไปบันทึกลง Google Sheet
+            // ส่งข้อมูลไปบันทึกลง Google Sheet แบบ POST (ไม่สน CORS)
             fetch(webAppUrl, { 
                 method: 'POST', 
-                mode: 'no-cors', // ป้องกันปัญหา CORS ตอนยิงข้ามโดเมน
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload) 
             }).catch(err => console.error("ไม่สามารถเชื่อมต่อ Google Sheet ได้:", err));
@@ -700,8 +774,13 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function showLoading() { document.getElementById('loading-overlay').classList.remove('hidden'); }
-        function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+        function showLoading(text = "กำลังซิงค์ข้อมูลกับระบบ...") { 
+            document.getElementById('loading-text').innerText = text;
+            document.getElementById('loading-overlay').classList.remove('hidden'); 
+        }
+        function hideLoading() { 
+            document.getElementById('loading-overlay').classList.add('hidden'); 
+        }
 
     </script>
 </body>
