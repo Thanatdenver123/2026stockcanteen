@@ -22,18 +22,21 @@
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <div class="max-w-4xl mx-auto mt-6 bg-white rounded-t-lg shadow-sm border-b flex">
-        <button onclick="switchTab('maid')" id="tab-maid" class="flex-1 py-3 text-center tab-active transition">
-            <i class="fa-solid fa-broom mr-2"></i> สำหรับแม่บ้าน (บันทึกรายวัน)
+    <!-- Navigation Tabs (เพิ่มแท็บประวัติ) -->
+    <div class="max-w-4xl mx-auto mt-6 bg-white rounded-t-lg shadow-sm border-b flex flex-wrap md:flex-nowrap">
+        <button onclick="switchTab('maid')" id="tab-maid" class="w-1/2 md:flex-1 py-3 text-center tab-active transition text-sm md:text-base">
+            <i class="fa-solid fa-broom mr-1 md:mr-2"></i> บันทึกรายวัน
         </button>
-        <button onclick="switchTab('admin')" id="tab-admin" class="flex-1 py-3 text-center tab-inactive transition">
-            <i class="fa-solid fa-user-shield mr-2"></i> สำหรับผู้ดูแล (คลังรวม)
+        <button onclick="switchTab('history')" id="tab-history" class="w-1/2 md:flex-1 py-3 text-center tab-inactive transition text-sm md:text-base border-l">
+            <i class="fa-solid fa-clock-rotate-left mr-1 md:mr-2"></i> สถานะ/ประวัติ
+        </button>
+        <button onclick="switchTab('admin')" id="tab-admin" class="w-full md:flex-1 py-3 text-center tab-inactive transition text-sm md:text-base border-t md:border-t-0 md:border-l">
+            <i class="fa-solid fa-user-shield mr-1 md:mr-2"></i> ผู้ดูแล (คลังรวม)
         </button>
     </div>
 
     <!-- Main Content Area -->
-    <main class="max-w-4xl mx-auto bg-white shadow-md rounded-b-lg p-6">
+    <main class="max-w-4xl mx-auto bg-white shadow-md rounded-b-lg p-4 md:p-6">
 
         <!-- ==================== MAID SECTION ==================== -->
         <section id="maid-section" class="block">
@@ -132,6 +135,64 @@
             <button onclick="submitDailyCheck()" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-200">
                 <i class="fa-solid fa-floppy-disk mr-2"></i> บันทึกข้อมูลประจำวัน
             </button>
+        </section>
+
+        <!-- ==================== HISTORY SECTION (NEW) ==================== -->
+        <section id="history-section" class="hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">สถานะสต๊อกและประวัติ</h2>
+            
+            <!-- สถานะปัจจุบัน (ทุกคนดูได้ ไม่ต้องล็อกอิน) -->
+            <div class="mb-6">
+                <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-chart-pie mr-2 text-blue-500"></i> ยอดคงเหลือประจำสัปดาห์ (อัปเดตล่าสุด)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-gray-600">ช้อนยาว</div>
+                        <div class="text-2xl font-bold text-blue-600" id="hist-spoon">-</div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-gray-600">ส้อม</div>
+                        <div class="text-2xl font-bold text-blue-600" id="hist-fork">-</div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-gray-600">ช้อนสั้น</div>
+                        <div class="text-2xl font-bold text-blue-600" id="hist-sspoon">-</div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <div class="text-sm text-gray-600">ตะเกียบ</div>
+                        <div class="text-2xl font-bold text-blue-600" id="hist-chopstick">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางประวัติจาก Google Sheet -->
+            <div>
+                <div class="flex justify-between items-end mb-3">
+                    <h3 class="font-bold text-gray-700"><i class="fa-solid fa-list mr-2 text-gray-500"></i> ประวัติการทำรายการล่าสุด</h3>
+                    <button onclick="fetchLatestData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-2 rounded"><i class="fa-solid fa-rotate-right"></i> รีเฟรชข้อมูล</button>
+                </div>
+                <div class="overflow-x-auto bg-white border rounded-lg shadow-sm">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100 border-b">
+                            <tr>
+                                <th class="py-2 px-3 text-left font-semibold text-gray-600 whitespace-nowrap">เวลาที่บันทึก</th>
+                                <th class="py-2 px-3 text-left font-semibold text-gray-600">ผู้ลงข้อมูล</th>
+                                <th class="py-2 px-3 text-center font-semibold text-gray-600">ช้อนยาว</th>
+                                <th class="py-2 px-3 text-center font-semibold text-gray-600">ส้อม</th>
+                                <th class="py-2 px-3 text-center font-semibold text-gray-600">ช้อนสั้น</th>
+                                <th class="py-2 px-3 text-center font-semibold text-gray-600">ตะเกียบ</th>
+                                <th class="py-2 px-3 text-center font-semibold text-gray-600">หลักฐาน</th>
+                                <th class="py-2 px-3 text-left font-semibold text-gray-600 min-w-[120px]">หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="8" class="text-center py-6 text-gray-400">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">* แสดงข้อมูลสูงสุด 20 รายการล่าสุดจากระบบ</p>
+            </div>
         </section>
 
 
@@ -349,33 +410,14 @@
         let currentPhotoName = null;
 
         // --- 2. ฟังก์ชั่นเริ่มต้นระบบ ---
-        window.onload = async function() {
+        window.onload = function() {
             // เซ็ตวันที่ปัจจุบัน
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('record-date').value = today;
 
-            // พยายามดึงข้อมูลอัปเดตล่าสุดจาก Google Apps Script (เพื่อแก้ปัญหาข้อมูลมือถือไม่ตรงคอมฯ)
-            showLoading("กำลังซิงค์ข้อมูลล่าสุดจากเซิร์ฟเวอร์...");
-            try {
-                const response = await fetch(webAppUrl);
-                const cloudData = await response.json();
-                
-                if (cloudData && cloudData.weekly) {
-                    db = cloudData;
-                    localStorage.setItem('canteenStockDB', JSON.stringify(db)); // แคชไว้
-                } else {
-                    loadLocalDataFallback();
-                }
-            } catch (err) {
-                console.warn("ไม่สามารถดึงข้อมูลจาก Cloud ได้ (อาจออฟไลน์), กำลังใช้ข้อมูล Local");
-                loadLocalDataFallback();
-            }
+            fetchLatestData();
 
-            updateUI();
-            hideLoading();
-
-            // จัดการการเลือกรูปภาพ พร้อมระบบบีบอัดภาพ (Resize & Compress) 
-            // ช่วยแก้ปัญหาไฟล์ภาพใหญ่เกินไปจน Google รับไม่ไหว
+            // จัดการการเลือกรูปภาพ พร้อมระบบบีบอัดภาพ
             document.getElementById('incident-photo').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
@@ -384,7 +426,7 @@
                         const img = new Image();
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 800; // ลดขนาดรูปภาพให้กว้างสุด 800px เพื่อลดการกินเน็ต
+                            const MAX_WIDTH = 800;
                             let width = img.width;
                             let height = img.height;
                             
@@ -398,7 +440,7 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // บีบอัดคุณภาพเหลือ 70%
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                             
                             document.getElementById('photo-preview').classList.remove('hidden');
                             document.getElementById('preview-img').src = compressedDataUrl;
@@ -416,6 +458,33 @@
             });
         };
 
+        async function fetchLatestData() {
+            showLoading("กำลังซิงค์ข้อมูลล่าสุดจากเซิร์ฟเวอร์...");
+            try {
+                const response = await fetch(webAppUrl);
+                const cloudData = await response.json();
+                
+                // ตรวจสอบรูปแบบข้อมูลว่ามาจากเวอร์ชันใหม่ (มี db และ history)
+                if (cloudData && cloudData.db && cloudData.db.weekly) {
+                    db = cloudData.db;
+                    localStorage.setItem('canteenStockDB', JSON.stringify(db)); // แคชไว้
+                    if(cloudData.history) renderHistory(cloudData.history);
+                } else if (cloudData && cloudData.weekly) {
+                    // รองรับกรณีเซิร์ฟเวอร์ส่งมาแบบโครงสร้างเดิม
+                    db = cloudData;
+                    localStorage.setItem('canteenStockDB', JSON.stringify(db)); 
+                } else {
+                    loadLocalDataFallback();
+                }
+            } catch (err) {
+                console.warn("ไม่สามารถดึงข้อมูลจาก Cloud ได้ (อาจออฟไลน์), กำลังใช้ข้อมูล Local");
+                loadLocalDataFallback();
+            }
+
+            updateUI();
+            hideLoading();
+        }
+
         function loadLocalDataFallback() {
             const savedData = localStorage.getItem('canteenStockDB');
             if(savedData) {
@@ -426,6 +495,49 @@
             }
         }
 
+        function renderHistory(historyList) {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            
+            if (!historyList || historyList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-gray-500">ไม่มีประวัติการทำรายการล่าสุด</td></tr>';
+                return;
+            }
+
+            historyList.forEach(item => {
+                // แปลงเวลาให้สวยงาม
+                let dateStr = item.date;
+                try {
+                    dateStr = new Date(item.date).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+                } catch(e) {}
+
+                // ตรวจสอบรูปรถถ่าย
+                const photoLink = (item.photoUrl && item.photoUrl !== '-' && item.photoUrl.startsWith('http'))
+                    ? `<a href="${item.photoUrl}" target="_blank" class="text-blue-500 hover:text-blue-700 underline text-xs"><i class="fa-solid fa-image"></i> ดูรูป</a>`
+                    : '<span class="text-gray-300">-</span>';
+
+                // จัดการสีของตัวเลขที่หาย
+                const spColor = item.lostSp > 0 ? 'text-red-500 font-bold' : 'text-gray-400';
+                const fkColor = item.lostFk > 0 ? 'text-red-500 font-bold' : 'text-gray-400';
+                const sspColor = item.lostSsp > 0 ? 'text-red-500 font-bold' : 'text-gray-400';
+                const chColor = item.lostCh > 0 ? 'text-red-500 font-bold' : 'text-gray-400';
+
+                const row = `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2 px-3 whitespace-nowrap text-xs text-gray-600">${dateStr}</td>
+                        <td class="py-2 px-3 text-sm font-medium text-gray-700">${item.reporter || '-'}</td>
+                        <td class="py-2 px-3 text-center ${spColor}">${item.lostSp > 0 ? '-'+item.lostSp : '0'}</td>
+                        <td class="py-2 px-3 text-center ${fkColor}">${item.lostFk > 0 ? '-'+item.lostFk : '0'}</td>
+                        <td class="py-2 px-3 text-center ${sspColor}">${item.lostSsp > 0 ? '-'+item.lostSsp : '0'}</td>
+                        <td class="py-2 px-3 text-center ${chColor}">${item.lostCh > 0 ? '-'+item.lostCh : '0'}</td>
+                        <td class="py-2 px-3 text-center">${photoLink}</td>
+                        <td class="py-2 px-3 text-xs text-gray-500 truncate max-w-[120px]" title="${item.action}">${item.action}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
         // --- 3. อัพเดทหน้าจอ UI ---
         function updateUI() {
             // Maid Section
@@ -433,6 +545,12 @@
             document.getElementById('maid-fk-remain').innerText = `คงเหลือในระบบ: ${db.weekly.fork}/${QUOTA.fork}`;
             document.getElementById('maid-ssp-remain').innerText = `คงเหลือในระบบ: ${db.weekly.sspoon}/${QUOTA.sspoon}`;
             document.getElementById('maid-ch-remain').innerText = `คงเหลือในระบบ: ${db.weekly.chopstick}/${QUOTA.chopstick}`;
+
+            // History Section (แสดงยอดปัจจุบัน)
+            document.getElementById('hist-spoon').innerHTML = `${db.weekly.spoon}<span class="text-sm font-normal text-gray-400">/${QUOTA.spoon}</span>`;
+            document.getElementById('hist-fork').innerHTML = `${db.weekly.fork}<span class="text-sm font-normal text-gray-400">/${QUOTA.fork}</span>`;
+            document.getElementById('hist-sspoon').innerHTML = `${db.weekly.sspoon}<span class="text-sm font-normal text-gray-400">/${QUOTA.sspoon}</span>`;
+            document.getElementById('hist-chopstick').innerHTML = `${db.weekly.chopstick}<span class="text-sm font-normal text-gray-400">/${QUOTA.chopstick}</span>`;
 
             // Reset placeholders / fields
             document.getElementById('remain-spoon').placeholder = db.weekly.spoon;
@@ -512,18 +630,31 @@
         // --- 4. ฟังก์ชั่นสลับแท็บ และ Login ---
         function switchTab(tab) {
             const mSec = document.getElementById('maid-section');
+            const hSec = document.getElementById('history-section');
             const aSec = document.getElementById('admin-section');
             const mTab = document.getElementById('tab-maid');
+            const hTab = document.getElementById('tab-history');
             const aTab = document.getElementById('tab-admin');
 
+            // Hide All
+            mSec.classList.add('hidden');
+            hSec.classList.add('hidden');
+            aSec.classList.add('hidden');
+            mTab.classList.replace('tab-active', 'tab-inactive');
+            hTab.classList.replace('tab-active', 'tab-inactive');
+            aTab.classList.replace('tab-active', 'tab-inactive');
+
             if (tab === 'maid') {
-                mSec.classList.remove('hidden'); aSec.classList.add('hidden');
+                mSec.classList.remove('hidden');
                 mTab.classList.replace('tab-inactive', 'tab-active');
-                aTab.classList.replace('tab-active', 'tab-inactive');
+            } else if (tab === 'history') {
+                hSec.classList.remove('hidden');
+                hTab.classList.replace('tab-inactive', 'tab-active');
+                // โหลดประวัติล่าสุดทันทีที่กดเข้าแท็บนี้
+                fetchLatestData();
             } else {
-                aSec.classList.remove('hidden'); mSec.classList.add('hidden');
+                aSec.classList.remove('hidden');
                 aTab.classList.replace('tab-inactive', 'tab-active');
-                mTab.classList.replace('tab-active', 'tab-inactive');
                 
                 // ตรวจสอบ Login ก่อนแสดง Dashboard
                 if(isAdminLoggedIn) {
