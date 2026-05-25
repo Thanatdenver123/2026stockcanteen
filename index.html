@@ -505,10 +505,14 @@
             }
 
             historyList.forEach(item => {
-                // แปลงเวลาให้สวยงาม
+                // แก้ไขการแปลงเวลาให้แสดงผลได้ชัวร์ๆ ไม่ขึ้น Invalid Date
                 let dateStr = item.date;
                 try {
-                    dateStr = new Date(item.date).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+                    const parsedDate = new Date(item.date);
+                    // เช็คว่าระบบแปลงวันที่ได้สำเร็จหรือไม่ (!isNaN) ถ้าแปลงได้ค่อยใช้ toLocaleString ถ้าแปลงไม่ได้จะใช้ข้อความเดิมจาก Sheet
+                    if (!isNaN(parsedDate.getTime())) {
+                        dateStr = parsedDate.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+                    }
                 } catch(e) {}
 
                 // ตรวจสอบรูปรถถ่าย
